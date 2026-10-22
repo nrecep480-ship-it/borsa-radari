@@ -3,9 +3,9 @@ import re
 import requests
 import feedparser
 
-# Token ve Chat ID bilgilerini güvenli bir şekilde GitHub Secrets'tan alıyoruz.
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8612771945:AAHbD44K221emkUajjd23IMzzZ8by4KJwa8")
-CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "7363820781")
+# Token ve Chat ID bilgileri güvenli yapılandırma:
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "7363628781")
 
 RSS_FEEDS = [
     "https://www.globenewswire.com/rss/feed/inline",
@@ -17,7 +17,7 @@ BLACK_LIST = r"Class Action|Shareholder Alert|Brodsky & Smith|Kaplan Fox|Frank R
 WHITE_LIST = r"FDA Approval|FDA|Phase 3|Phase 2|Clinical Trial|Breakthrough Therapy|Orphan Drug|Fast Track|Acquisition|Buyout|Merger|Definitive Agreement|Strategic Partnership|Joint Venture|Multi-Million Dollar Contract|Contract Award|Patent Issued|ARPA-H Funding|BARDA|NIH Grant|Exclusive License|Commercialization"
 
 def extract_symbol(title):
-    match = re.search(r'\((?:NASDAQ|NYSE|AMEX):\s*([A-Z]{1,5})\)', title, re.IGNORECASE)
+    match = re.search(r'\((?:NASDAQ\vert{}NYSE\vert{}AMEX):\s*([A-Z]{1,5})\)', title, re.IGNORECASE)
     if match:
         return match.group(1).upper()
 
@@ -32,6 +32,10 @@ def extract_symbol(title):
     return None
 
 def check_stock_radar():
+    if not TELEGRAM_TOKEN:
+        print("Hata: TELEGRAM_BOT_TOKEN bulunamadı!")
+        return
+
     for feed_url in RSS_FEEDS:
         try:
             feed = feedparser.parse(feed_url)
