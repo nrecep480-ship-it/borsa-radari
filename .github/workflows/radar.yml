@@ -9,27 +9,27 @@ jobs:
   run-radar:
     runs-on: ubuntu-latest
     steps:
-      - name: Repositoriyi Çek
-        uses: actions/checkout@v3
+      - name: Repositoriyi Cek
+        uses: actions/checkout@v4
 
-      - name: Python Ortamını Kur
-        uses: actions/setup-python@v4
+      - name: Python Ortamini Kur
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Bağımlılıkları Yükle
+      - name: Gerekli Kutupxaneleri Yukle
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install requests
 
-      - name: 30 Saniyelik Döngü İle Radarı Çalıştır (5 Dakika Canlı Kal)
+      - name: 30 Saniyelik Dongu Ile Radari Calistir
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           END_TIME=$((SECONDS + 300))
           while [ $SECONDS -lt $END_TIME ]; do
-            echo "--- Radar Taranıyor: $(date) ---"
-            python main.py
+            echo "--- Radar Taraniyor: $(date) ---"
+            python main.py || true
             sleep 30
           done
