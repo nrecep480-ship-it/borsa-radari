@@ -2,42 +2,52 @@ import os
 import feedparser
 import requests
 
-# Güvenli token ve senin doğru Chat ID'n
+print("--- BOT ÇALIŞMAYA BAŞLADI ---")
+
+# Token kontrolü
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = "7363628781"
 
-RSS_FEEDS = [
-    "https://www.globenewswire.com/rss/feed/inline"
-]
+if not TELEGRAM_TOKEN:
+    print("HATA: TELEGRAM_BOT_TOKEN bulunamadı! GitHub Secrets ayarlarını kontrol et.")
+    exit(1)
+else:
+    print("TOKEN: Başarıyla alındı.")
 
-def test_telegram_radar():
-    if not TELEGRAM_TOKEN:
-        print("Hata: TELEGRAM_BOT_TOKEN bulunamadı!")
-        return
+# Güvenilir bir RSS kaynağı
+url = "https://www.globenewswire.com/rss/feed/inline"
+print(f"RSS adresi taranıyor: {url}")
 
-    for feed_url in RSS_FEEDS:
-        try:
-            feed = feedparser.parse(feed_url)
-            if feed.entries:
-                # Test amaçlı akıştaki ilk haberi alıyoruz (hiçbir filtre yok)
-                entry = feed.entries[0]
-                link = getattr(entry, 'link', '')
-                title = getattr(entry, 'title', '')
+feed = feedparser.parse(url)
 
-                msg = (
-                    f"🧪 **TEST MESAJI (Filtresiz Çalışıyor!)**\n\n"
-                    f"📰 **Haber Başlığı:** {title}\n\n"
-                    f"🔗 [Habere Git]({link})"
-                )
+if not feed.entries:
+    print("HATA: RSS kaynağından hiç haber çekilemedi!")
+    exit(1)
 
-                response = requests.post(
-                    f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                    json={"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
-                )
-                print(f"Telegram Yanıt Durumu: {response.status_code}")
-                break # Sadece bir test mesajı atıp döngüyü bitiriyoruz
-        except Exception as e:
-            print(f"Hata oluştu: {e}")
+# Akıştaki ilk haberi alıyoruz
+entry = feed.entries[0]
+title = getattr(entry, 'title', 'Başlık Yok')
+link = getattr(entry, 'link', 'Link Yok')
 
-if __name__ == "__main__":
-    test_telegram_radar()
+print(f"Bulunan Haber Başlığı: {title}")
+
+# Telegram mesajı hazırlama
+msg = f"🧪 **TEST MESAJI (Direkt Çekildi)**\n\n📰 {title}\n\n🔗 {link}"
+
+telegram_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+payload = {
+    "chat_id": CHAT_ID,
+    "text": msg,
+    "parse_mode": "Markdown"
+}
+
+print("Telegram'a mesaj gönderiliyor...")
+response = requests.post(telegram_url, json=payload)
+
+print(f"Telegram Yanıt Kodu: {response.status_code}")
+print(f"Telegram Yanıt İçeriği: {response.text}")
+
+if response.status_code == 200:
+    print("BAŞARILI: Mesaj Telegram'a iletildi!")
+else:
+    print("HATA: Telegram mesajı reddetti!")
