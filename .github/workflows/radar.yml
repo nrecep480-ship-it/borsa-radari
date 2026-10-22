@@ -2,6 +2,8 @@ name: Borsa Radari Runner
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '* * * * *'
 
 jobs:
   run-radar:
@@ -18,16 +20,9 @@ jobs:
       - name: Gerekli Kutuphaneleri Yukle
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install requests feedparser yfinance
 
-      - name: 30 Saniyelik Dongu Ile Radari Calistir
+      - name: Botu Calistir
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          END_TIME=$((SECONDS + 300))
-          while [ $SECONDS -lt $END_TIME ]; do
-            echo "--- Radar Taraniyor: $(date) ---"
-            python main.py || true
-            sleep 30
-          done
+        run: python main.py
