@@ -2,25 +2,34 @@ name: Borsa Radari Runner
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Her 1 dakikada bir otomatik çalışır
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   run-radar:
     runs-on: ubuntu-latest
     steps:
-      - name: Kodu Cek
+      - name: Repositoriyi Çek
         uses: actions/checkout@v3
 
-      - name: Python Kur
+      - name: Python Ortamını Kur
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Kutuphaneleri Yukle
+      - name: Bağımlılıkları Yükle
         run: |
           python -m pip install --upgrade pip
-          pip install requests feedparser
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Borsa Botunu Calistir
-        run: python main.py
+      - name: 30 Saniyelik Döngü İle Radarı Çalıştır (5 Dakika Canlı Kal)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          END_TIME=$((SECONDS + 300))
+          while [ $SECONDS -lt $END_TIME ]; do
+            echo "--- Radar Taranıyor: $(date) ---"
+            python main.py
+            sleep 30
+          done
